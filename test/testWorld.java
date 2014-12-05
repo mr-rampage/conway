@@ -1,5 +1,7 @@
 import static org.junit.Assert.*;
 
+import java.awt.Point;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,20 +58,12 @@ public class testWorld {
 	}
 	
 	@Test
-	public void testInvalidSetCell() {
-		game = new Life(2,2);
-		assertFalse(game.setCell(-1, -1, true));
-		assertFalse(game.setCell(2, 2, true));
-		assertTrue(game.setCell(0, 0, true));
-	}
-	
-	@Test
 	public void testCountLivingNeighbours() {
 		game = new Life(2, 2);
 		game.setCell(1, 1, true);
 		game.setCell(0, 0, true);
 		game.setCell(0, 1, true);
-		assertEquals(game.countLivingNeighbours.apply(0, 0), new Integer(2));
+		assertEquals(game.countLivingNeighbours.apply(new Point(0, 0)), new Integer(2));
 	}
 	
 	@Test

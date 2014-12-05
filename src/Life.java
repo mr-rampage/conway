@@ -1,19 +1,20 @@
+import java.awt.Point;
 import java.util.Arrays;
-import java.util.function.BiFunction;
-import java.util.function.BiPredicate;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 
 
 public class Life {
 
-	private boolean[][] world;
+	private final boolean[][] world;
 	
-	private BiPredicate<Integer, Integer> isValidCoordinate = 
-			(row, column) ->!((row < 0) || 
-			(row >= world.length) || 
-			(column < 0) || 
-			(column >= world[0].length));
+	private Predicate<Point> isValidCoordinate = 
+			(coordinates) -> !((coordinates.getX() < 0) || 
+			(coordinates.getX() >= world.length) || 
+			(coordinates.getY() < 0) || 
+			(coordinates.getY() >= world[(int)coordinates.getX()].length));
 			
 	private IntPredicate isUnderpopulated = (population) -> population < 2;
 	
@@ -21,11 +22,13 @@ public class Life {
 	
 	private Function<Boolean, String> renderCell = (isAlive) -> (isAlive ? "*" : "." );
 	
-	private BiPredicate<Integer, Integer> isCellAlive = (row, column) -> world[row][column];
+	private Predicate<Point> isCellAlive = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];
 	
-	BiFunction<Integer, Integer, Integer> countLivingNeighbours = (row, column) -> 
-		(isValidCoordinate.test(row, column) ? countNeighbours(row, column, true) : -1);
-		
+	Function<Point, Integer> countLivingNeighbours = (coordinates) ->
+		(isValidCoordinate.test(coordinates) ? countNeighbours(coordinates, true) : -1);
+	
+	BiConsumer<Point, Boolean> setCell = (coordinates, value) -> world[(int)coordinates.getX()][(int)coordinates.getY()] = value;
+	
 	public Life(boolean[][] seed) {
 		this.world = Arrays.copyOf(seed, seed.length);
 	}
@@ -38,21 +41,23 @@ public class Life {
 		return world;
 	}
 	
-	boolean setCell(final int row, final int column, final boolean value) {
-		if (isValidCoordinate.test(row, column)) {
-			world[row][column] = value;
-			return true;
+	public void setCell(int row, int column, boolean value) {
+		Point location = new Point(row, column);
+		if (isValidCoordinate.test(location)) {
+			setCell.accept(location, value);
 		}
-		return false;
 	}
 	
-	private int countNeighbours(final int row, final int column, final boolean value) {
+	private int countNeighbours(final Point cell, final boolean value) {
+		int row = (int)cell.getX();
+		int column = (int)cell.getY();
 		int result = 0;
 		for (int i = row - 1; i <= row + 1; i++) {
 			for (int j = column - 1; j <= column + 1; j++) {
-				if (isValidCoordinate.test(i, j) &&
-						(row != i || column != j) &&
-						isCellAlive.test(i, j)) {
+				Point location = new Point(i, j);
+				if (isValidCoordinate.test(location) &&
+						!location.equals(cell) &&
+						isCellAlive.test(location)) {
 					result++;
 				}
 			}
@@ -64,14 +69,15 @@ public class Life {
 		Life nextLife = new Life(world);
 		for (int row = 0; row < world.length; row++) {
 			for (int column = 0; column < world[row].length; column++) {
-				int neighbours = countLivingNeighbours.apply(row, column);
-				if (isCellAlive.test(row, column)) {
+				Point location = new Point(row, column);
+				int neighbours = countLivingNeighbours.apply(location);
+				if (isCellAlive.test(location)) {
 					if (isUnderpopulated.or(isOverpopulated).test(neighbours)) {
-						nextLife.setCell(row, column, false);
+						nextLife.setCell.accept(location, false);
 					}
 				} else {
 					if (neighbours == 3) {
-						nextLife.setCell(row, column, true);
+						nextLife.setCell.accept(location, true);
 					}
 				}
 			}
