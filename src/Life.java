@@ -1,6 +1,7 @@
 import java.awt.Point;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
@@ -15,6 +16,9 @@ public class Life {
 			(coordinates.getX() >= world.length) || 
 			(coordinates.getY() < 0) || 
 			(coordinates.getY() >= world[(int)coordinates.getX()].length));
+			
+	private BiPredicate<boolean[][], boolean[][]> isSameDimensions = (world1, world2) ->
+		((world1.length == world2.length) && (world1[0].length == world2[0].length));
 			
 	private IntPredicate isUnderpopulated = (population) -> population < 2;
 	
@@ -47,6 +51,16 @@ public class Life {
 			setCell.accept(location, value);
 		}
 	}
+	
+	/*
+	public void forEachCell(Function fn) {
+		for (int row = 0; row < world.length; row++) {
+			for (int column = 0; column < world[row].length; column++) {
+					fn.apply(world[row][column]);
+			}
+		}
+	}
+	*/
 	
 	private int countNeighbours(final Point cell, final boolean value) {
 		int row = (int)cell.getX();
@@ -96,5 +110,22 @@ public class Life {
 			}
 		}
 		System.out.println(output.toString());
+	}
+
+	public boolean compareTo(Life otherGame) {
+		boolean[][] otherWorld = otherGame.getWorld();
+		
+		if (this.isSameDimensions.test(otherWorld, this.world)) {
+			for (int row = 0; row < otherWorld.length; row++) {
+				for(int col = 0; col < otherWorld[row].length; col++){
+					if(otherWorld[row][col] != this.world[row][col]){
+						return false;
+					}
+				}
+			}
+			return true;
+		} else{
+			return false;
+		}
 	}
 }

@@ -103,4 +103,47 @@ public class testWorld {
 			}
 		}
 	}
+	
+	@Test
+	public void testCompareToSelf() {
+		game = new Life(3,3);
+		game.setCell(0, 0, true);
+		assertTrue(game.compareTo(game));
+	}
+	
+	@Test
+	public void testCompareToCopy() {
+		game = new Life(3,3);
+		game.setCell(0, 0, true);
+		Life copy = new Life(game.getWorld());
+		assertTrue(game.compareTo(copy));
+	}
+	
+	@Test
+	public void testCompareToDifferentDimensions() {
+		game = new Life(3,3);
+		Life game2 = new Life(4,5);
+		assertFalse(game.compareTo(game2));
+	}
+	
+	@Test
+	public void testCompareToDifferentWorldState() {
+		game = new Life(3,3);
+		Life game2 = new Life(3,3);
+		game2.setCell(2, 1, true);
+		assertFalse(game.compareTo(game2));
+	}
+	
+	@Test
+	public void testCrossPattern() {
+		game = new Life(5,5);
+		game.setCell(2,1, true);
+		game.setCell(2,2, true);
+		game.setCell(2,3, true);
+		Life gen1 = game.nextLife();
+		Life gen2 = gen1.nextLife();
+		assertFalse(game.compareTo(gen1));
+		assertTrue(game.compareTo(gen2));
+	}
+	
 }
