@@ -1,7 +1,7 @@
 import java.awt.Point;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
@@ -16,22 +16,19 @@ public class Life {
 			(coordinates.getX() >= world.length) || 
 			(coordinates.getY() < 0) || 
 			(coordinates.getY() >= world[(int)coordinates.getX()].length));
-			
-	private BiPredicate<boolean[][], boolean[][]> isSameDimensions = (world1, world2) ->
-		((world1.length == world2.length) && (world1[0].length == world2[0].length));
-			
+
+	private Predicate<Point> isCellAlive = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];			
 	private IntPredicate isUnderpopulated = (population) -> population < 2;
-	
-	private IntPredicate isOverpopulated = (population) -> population > 3;
+	private IntPredicate isOverpopulated = (population) -> population > 3;	
+	private IntPredicate canGrow = (population) -> population == 3;
 	
 	private Function<Boolean, String> renderCell = (isAlive) -> (isAlive ? "*" : "." );
-	
-	private Predicate<Point> isCellAlive = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];
-	
+	private Function<Point, Boolean> getCellState = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];
 	Function<Point, Integer> countLivingNeighbours = (coordinates) ->
 		(isValidCoordinate.test(coordinates) ? countNeighbours(coordinates, true) : -1);
 	
 	BiConsumer<Point, Boolean> setCell = (coordinates, value) -> world[(int)coordinates.getX()][(int)coordinates.getY()] = value;
+	
 	
 	public Life(boolean[][] seed) {
 		this.world = Arrays.copyOf(seed, seed.length);
@@ -52,16 +49,6 @@ public class Life {
 		}
 	}
 	
-	/*
-	public void forEachCell(Function fn) {
-		for (int row = 0; row < world.length; row++) {
-			for (int column = 0; column < world[row].length; column++) {
-					fn.apply(world[row][column]);
-			}
-		}
-	}
-	*/
-	
 	private int countNeighbours(final Point cell, final boolean value) {
 		int row = (int)cell.getX();
 		int column = (int)cell.getY();
@@ -71,31 +58,38 @@ public class Life {
 				Point location = new Point(i, j);
 				if (isValidCoordinate.test(location) &&
 						!location.equals(cell) &&
-						isCellAlive.test(location)) {
+						getCellState.apply(location) == value) {
 					result++;
 				}
 			}
 		}
 		return result;
 	}
-
-	public Life nextLife() {
-		Life nextLife = new Life(world);
+	
+	void setCellState(Life world, Point location) {
+		int neighbours = countLivingNeighbours.apply(location);
+		world.setCell.accept(location, 
+				(isCellAlive.test(location) ? 
+						!(isUnderpopulated.or(isOverpopulated).test(neighbours)) :
+							canGrow.test(neighbours)));
+	}
+	
+	Consumer<Point> cellConsumerFactory(Life world, BiConsumer<Life, Point> transformer) {
+		return (location) -> transformer.accept(world, location);
+	}
+	
+	void transformWorld(boolean[][] world, Consumer<Point> cellConsumer) {
 		for (int row = 0; row < world.length; row++) {
 			for (int column = 0; column < world[row].length; column++) {
-				Point location = new Point(row, column);
-				int neighbours = countLivingNeighbours.apply(location);
-				if (isCellAlive.test(location)) {
-					if (isUnderpopulated.or(isOverpopulated).test(neighbours)) {
-						nextLife.setCell.accept(location, false);
-					}
-				} else {
-					if (neighbours == 3) {
-						nextLife.setCell.accept(location, true);
-					}
-				}
+				cellConsumer.accept(new Point(row, column));
 			}
 		}
+	}
+	
+	public Life nextLife() {
+		Life nextLife = new Life(world);
+		Consumer<Point> setCellValue = cellConsumerFactory(nextLife, this::setCellState);
+		transformWorld(nextLife.getWorld(), setCellValue);
 		return nextLife;
 	}
 	
@@ -112,20 +106,7 @@ public class Life {
 		System.out.println(output.toString());
 	}
 
-	public boolean compareTo(Life otherGame) {
-		boolean[][] otherWorld = otherGame.getWorld();
-		
-		if (this.isSameDimensions.test(otherWorld, this.world)) {
-			for (int row = 0; row < otherWorld.length; row++) {
-				for(int col = 0; col < otherWorld[row].length; col++){
-					if(otherWorld[row][col] != this.world[row][col]){
-						return false;
-					}
-				}
-			}
-			return true;
-		} else{
-			return false;
-		}
+	public boolean compareTo(Life other) {
+		return Arrays.deepEquals(this.world, other.getWorld());
 	}
 }
