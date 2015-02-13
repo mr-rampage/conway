@@ -20,7 +20,8 @@ public class Life {
 	private Predicate<Point> isCellAlive = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];			
 	private IntPredicate isUnderpopulated = (population) -> population < 2;
 	private IntPredicate isOverpopulated = (population) -> population > 3;	
-	private IntPredicate canGrow = (population) -> population == 3;
+	private IntPredicate isPopulation3 = (population) -> population == 3;
+	private IntPredicate isPopulation2 = (population) -> population == 2;
 	
 	private Function<Boolean, String> renderCell = (isAlive) -> (isAlive ? "*" : "." );
 	private Function<Point, Boolean> getCellState = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];
@@ -69,9 +70,8 @@ public class Life {
 	void setCellState(Life world, Point location) {
 		int neighbours = countLivingNeighbours.apply(location);
 		world.setCell.accept(location, 
-				(isCellAlive.test(location) ? 
-						!(isUnderpopulated.or(isOverpopulated).test(neighbours)) :
-							canGrow.test(neighbours)));
+				isPopulation3.test(neighbours) || 
+				isPopulation2.test(neighbours) && isCellAlive.test(location));
 	}
 	
 	Consumer<Point> cellConsumerFactory(Life world, BiConsumer<Life, Point> transformer) {
@@ -86,10 +86,21 @@ public class Life {
 		}
 	}
 	
+	
+	
+	
 	public Life nextLife() {
-		Life nextLife = new Life(world);
+		Life nextLife = new Life(this.world.length, this.world[0].length);
 		Consumer<Point> setCellValue = cellConsumerFactory(nextLife, this::setCellState);
 		transformWorld(nextLife.getWorld(), setCellValue);
+		//for (int row = 0; row < world.length; row++) {
+		//	for (int column = 0; column < world[row].length; column++) {
+		//		Point location = new Point(row, column);
+		//		int neighbours = countLivingNeighbours.apply(location);
+		//		nextLife.setCell(row, column, isPopulation3.test(neighbours) || 
+		//				isPopulation2.test(neighbours) && isCellAlive.test(location));
+		//	}
+		//}		
 		return nextLife;
 	}
 	

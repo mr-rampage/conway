@@ -58,12 +58,30 @@ public class testWorld {
 	}
 	
 	@Test
-	public void testCountLivingNeighbours() {
+	public void testCountThreeLivingNeighbours() {
+		game = new Life(2, 2);
+		game.setCell(1, 1, true);
+		game.setCell(0, 0, true);
+		game.setCell(0, 1, true);
+		game.setCell(1, 0, true);
+		assertEquals(game.countLivingNeighbours.apply(new Point(0, 0)), new Integer(3));
+	}
+	
+	@Test
+	public void testCountTwoLivingNeighbours() {
 		game = new Life(2, 2);
 		game.setCell(1, 1, true);
 		game.setCell(0, 0, true);
 		game.setCell(0, 1, true);
 		assertEquals(game.countLivingNeighbours.apply(new Point(0, 0)), new Integer(2));
+	}
+	
+	@Test
+	public void testCountOneLivingNeighbours() {
+		game = new Life(2, 2);
+		game.setCell(1, 1, true);
+		game.setCell(0, 0, true);
+		assertEquals(game.countLivingNeighbours.apply(new Point(0, 0)), new Integer(1));
 	}
 	
 	@Test
