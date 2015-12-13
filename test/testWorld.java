@@ -90,7 +90,7 @@ public class testWorld {
 		game.setCell(1, 1, true);
 		game.setCell(0, 0, true);
 		game.setCell(3, 3, true);
-		Life nextGeneration = game.nextLife();
+		Life nextGeneration = game.nextTick();
 		boolean[][] world = nextGeneration.getWorld();
 		for(boolean[] row : world) {
 			for(boolean cell: row) {
@@ -105,7 +105,7 @@ public class testWorld {
 		game.setCell(1, 5, true);
 		game.setCell(2, 4, true);
 		game.setCell(2, 5, true);
-		Life nextGeneration = game.nextLife();
+		Life nextGeneration = game.nextTick();
 		boolean[][] world = nextGeneration.getWorld();
 		for (int i = 0; i < world.length; i++) {
 			for (int j = 0; j < world[i].length; j++) {
@@ -158,8 +158,8 @@ public class testWorld {
 		game.setCell(2,1, true);
 		game.setCell(2,2, true);
 		game.setCell(2,3, true);
-		Life gen1 = game.nextLife();
-		Life gen2 = gen1.nextLife();
+		Life gen1 = game.nextTick();
+		Life gen2 = gen1.nextTick();
 		assertFalse(game.compareTo(gen1));
 		assertTrue(game.compareTo(gen2));
 	}

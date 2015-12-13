@@ -6,10 +6,9 @@ import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 
-
 public class Life {
 
-	private final boolean[][] world;
+	private boolean[][] world;
 	
 	private Predicate<Point> isValidCoordinate = 
 			(coordinates) -> !((coordinates.getX() < 0) || 
@@ -25,11 +24,11 @@ public class Life {
 	
 	private Function<Boolean, String> renderCell = (isAlive) -> (isAlive ? "*" : "." );
 	private Function<Point, Boolean> getCellState = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];
+
 	Function<Point, Integer> countLivingNeighbours = (coordinates) ->
 		(isValidCoordinate.test(coordinates) ? countNeighbours(coordinates, true) : -1);
 	
 	BiConsumer<Point, Boolean> setCell = (coordinates, value) -> world[(int)coordinates.getX()][(int)coordinates.getY()] = value;
-	
 	
 	public Life(boolean[][] seed) {
 		this.world = Arrays.copyOf(seed, seed.length);
@@ -85,35 +84,33 @@ public class Life {
 			}
 		}
 	}
-	
-	
-	
-	
-	public Life nextLife() {
+
+    /**
+     * Performs the relevant computations to advance the world's state by one tick.
+     * The old state is lost.
+     */
+	public Life nextTick() {
 		Life nextLife = new Life(this.world.length, this.world[0].length);
 		Consumer<Point> setCellValue = cellConsumerFactory(nextLife, this::setCellState);
 		transformWorld(nextLife.getWorld(), setCellValue);
-		//for (int row = 0; row < world.length; row++) {
-		//	for (int column = 0; column < world[row].length; column++) {
-		//		Point location = new Point(row, column);
-		//		int neighbours = countLivingNeighbours.apply(location);
-		//		nextLife.setCell(row, column, isPopulation3.test(neighbours) || 
-		//				isPopulation2.test(neighbours) && isCellAlive.test(location));
-		//	}
-		//}		
 		return nextLife;
 	}
-	
+
+    /**
+     * Prints the current state of the world to stdout.
+     */
 	public void render() {
 		StringBuilder output = new StringBuilder();
-		for (int row = 0; row < world.length; row++) {
-			for (int column = 0; column < world[row].length; column++) {
-				output.append(renderCell.apply(world[row][column]));
-				if (column + 1 == world[row].length) {
-					output.append(System.getProperty("line.separator"));
-				}
-			}
-		}
+
+        for (boolean[] aWorld : world) {
+            for (int column = 0; column < aWorld.length; column++) {
+                output.append(renderCell.apply(aWorld[column]));
+                if (column + 1 == aWorld.length) {
+                    output.append(System.getProperty("line.separator"));
+                }
+            }
+        }
+
 		System.out.println(output.toString());
 	}
 
