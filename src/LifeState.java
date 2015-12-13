@@ -6,10 +6,12 @@ import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 
+/**
+ * A single tick/frame in a Conway's Game of Life game.
+ */
+public class LifeState {
 
-public class Life {
-
-	private final boolean[][] world;
+	private boolean[][] world;
 	
 	private Predicate<Point> isValidCoordinate = 
 			(coordinates) -> !((coordinates.getX() < 0) || 
@@ -17,7 +19,8 @@ public class Life {
 			(coordinates.getY() < 0) || 
 			(coordinates.getY() >= world[(int)coordinates.getX()].length));
 
-	private Predicate<Point> isCellAlive = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];			
+	private Predicate<Point> isCellAlive = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];
+
 	private IntPredicate isUnderpopulated = (population) -> population < 2;
 	private IntPredicate isOverpopulated = (population) -> population > 3;	
 	private IntPredicate isPopulation3 = (population) -> population == 3;
@@ -25,17 +28,17 @@ public class Life {
 	
 	private Function<Boolean, String> renderCell = (isAlive) -> (isAlive ? "*" : "." );
 	private Function<Point, Boolean> getCellState = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];
+
 	Function<Point, Integer> countLivingNeighbours = (coordinates) ->
 		(isValidCoordinate.test(coordinates) ? countNeighbours(coordinates, true) : -1);
 	
 	BiConsumer<Point, Boolean> setCell = (coordinates, value) -> world[(int)coordinates.getX()][(int)coordinates.getY()] = value;
 	
-	
-	public Life(boolean[][] seed) {
-		this.world = Arrays.copyOf(seed, seed.length);
+	public LifeState(boolean[][] seed) {
+        this.world = Arrays.copyOf(seed, seed.length);
 	}
 	
-	public Life(final int rows, final int columns) {
+	public LifeState(final int rows, final int columns) {
 		this.world = new boolean[rows][columns];
 	}
 
@@ -67,14 +70,14 @@ public class Life {
 		return result;
 	}
 	
-	void setCellState(Life world, Point location) {
+	void setCellState(LifeState world, Point location) {
 		int neighbours = countLivingNeighbours.apply(location);
 		world.setCell.accept(location, 
 				isPopulation3.test(neighbours) || 
 				isPopulation2.test(neighbours) && isCellAlive.test(location));
 	}
 	
-	Consumer<Point> cellConsumerFactory(Life world, BiConsumer<Life, Point> transformer) {
+	Consumer<Point> cellConsumerFactory(LifeState world, BiConsumer<LifeState, Point> transformer) {
 		return (location) -> transformer.accept(world, location);
 	}
 	
@@ -85,39 +88,37 @@ public class Life {
 			}
 		}
 	}
-	
-	
-	
-	
-	public Life nextLife() {
-		Life nextLife = new Life(this.world.length, this.world[0].length);
-		Consumer<Point> setCellValue = cellConsumerFactory(nextLife, this::setCellState);
-		transformWorld(nextLife.getWorld(), setCellValue);
-		//for (int row = 0; row < world.length; row++) {
-		//	for (int column = 0; column < world[row].length; column++) {
-		//		Point location = new Point(row, column);
-		//		int neighbours = countLivingNeighbours.apply(location);
-		//		nextLife.setCell(row, column, isPopulation3.test(neighbours) || 
-		//				isPopulation2.test(neighbours) && isCellAlive.test(location));
-		//	}
-		//}		
-		return nextLife;
+
+    /**
+     * Performs the relevant computations to advance the world's state by one tick.
+     * The old state is lost.
+     */
+	public LifeState nextTick() {
+		LifeState nextTick = new LifeState(this.world.length, this.world[0].length);
+		Consumer<Point> setCellValue = cellConsumerFactory(nextTick, this::setCellState);
+		transformWorld(nextTick.getWorld(), setCellValue);
+		return nextTick;
 	}
-	
+
+    /**
+     * Prints the state of the world to stdout.
+     */
 	public void render() {
 		StringBuilder output = new StringBuilder();
-		for (int row = 0; row < world.length; row++) {
-			for (int column = 0; column < world[row].length; column++) {
-				output.append(renderCell.apply(world[row][column]));
-				if (column + 1 == world[row].length) {
-					output.append(System.getProperty("line.separator"));
-				}
-			}
-		}
+
+        for (boolean[] aWorld : world) {
+            for (int column = 0; column < aWorld.length; column++) {
+                output.append(renderCell.apply(aWorld[column]));
+                if (column + 1 == aWorld.length) {
+                    output.append(System.getProperty("line.separator"));
+                }
+            }
+        }
+
 		System.out.println(output.toString());
 	}
 
-	public boolean compareTo(Life other) {
+	public boolean compareTo(LifeState other) {
 		return Arrays.deepEquals(this.world, other.getWorld());
 	}
 }
