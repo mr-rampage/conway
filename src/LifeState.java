@@ -6,7 +6,10 @@ import java.util.function.Function;
 import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 
-public class Life {
+/**
+ * A single tick/frame in a Conway's Game of Life game.
+ */
+public class LifeState {
 
 	private boolean[][] world;
 	
@@ -16,7 +19,8 @@ public class Life {
 			(coordinates.getY() < 0) || 
 			(coordinates.getY() >= world[(int)coordinates.getX()].length));
 
-	private Predicate<Point> isCellAlive = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];			
+	private Predicate<Point> isCellAlive = (coordinates) -> world[(int)coordinates.getX()][(int)coordinates.getY()];
+
 	private IntPredicate isUnderpopulated = (population) -> population < 2;
 	private IntPredicate isOverpopulated = (population) -> population > 3;	
 	private IntPredicate isPopulation3 = (population) -> population == 3;
@@ -30,11 +34,11 @@ public class Life {
 	
 	BiConsumer<Point, Boolean> setCell = (coordinates, value) -> world[(int)coordinates.getX()][(int)coordinates.getY()] = value;
 	
-	public Life(boolean[][] seed) {
-		this.world = Arrays.copyOf(seed, seed.length);
+	public LifeState(boolean[][] seed) {
+        this.world = Arrays.copyOf(seed, seed.length);
 	}
 	
-	public Life(final int rows, final int columns) {
+	public LifeState(final int rows, final int columns) {
 		this.world = new boolean[rows][columns];
 	}
 
@@ -66,14 +70,14 @@ public class Life {
 		return result;
 	}
 	
-	void setCellState(Life world, Point location) {
+	void setCellState(LifeState world, Point location) {
 		int neighbours = countLivingNeighbours.apply(location);
 		world.setCell.accept(location, 
 				isPopulation3.test(neighbours) || 
 				isPopulation2.test(neighbours) && isCellAlive.test(location));
 	}
 	
-	Consumer<Point> cellConsumerFactory(Life world, BiConsumer<Life, Point> transformer) {
+	Consumer<Point> cellConsumerFactory(LifeState world, BiConsumer<LifeState, Point> transformer) {
 		return (location) -> transformer.accept(world, location);
 	}
 	
@@ -89,15 +93,15 @@ public class Life {
      * Performs the relevant computations to advance the world's state by one tick.
      * The old state is lost.
      */
-	public Life nextTick() {
-		Life nextLife = new Life(this.world.length, this.world[0].length);
-		Consumer<Point> setCellValue = cellConsumerFactory(nextLife, this::setCellState);
-		transformWorld(nextLife.getWorld(), setCellValue);
-		return nextLife;
+	public LifeState nextTick() {
+		LifeState nextTick = new LifeState(this.world.length, this.world[0].length);
+		Consumer<Point> setCellValue = cellConsumerFactory(nextTick, this::setCellState);
+		transformWorld(nextTick.getWorld(), setCellValue);
+		return nextTick;
 	}
 
     /**
-     * Prints the current state of the world to stdout.
+     * Prints the state of the world to stdout.
      */
 	public void render() {
 		StringBuilder output = new StringBuilder();
@@ -114,7 +118,7 @@ public class Life {
 		System.out.println(output.toString());
 	}
 
-	public boolean compareTo(Life other) {
+	public boolean compareTo(LifeState other) {
 		return Arrays.deepEquals(this.world, other.getWorld());
 	}
 }

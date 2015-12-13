@@ -8,7 +8,7 @@ import org.junit.Test;
 
 public class testWorld {
 
-	private Life game;
+	private LifeState game;
 	
 	@Before
 	public void setup() {
@@ -16,7 +16,7 @@ public class testWorld {
 	
 	@Test
 	public void testCreateWorld() {
-		game = new Life(4, 4);
+		game = new LifeState(4, 4);
 		boolean[][] world = game.getWorld();
 		assertEquals(world.length, 4);
 		assertEquals(world[0].length, 4);
@@ -26,7 +26,7 @@ public class testWorld {
 	public void testCopyWorld() {
 		boolean[][] original = new boolean[5][3];
 		original[2][2] = true;
-		game = new Life(original);
+		game = new LifeState(original);
 		boolean[][] copy = game.getWorld();
 		assertEquals(copy.length, original.length);
 		assertEquals(copy[0].length, original[0].length);
@@ -37,7 +37,7 @@ public class testWorld {
 
 	@Test
 	public void testAllFalseOnDefault() {
-		game = new Life(2,2);
+		game = new LifeState(2,2);
 		boolean[][] world = game.getWorld();
 		for(boolean[] row : world) {
 			for(boolean cell: row) {
@@ -48,7 +48,7 @@ public class testWorld {
 	
 	@Test
 	public void testSetCell() {
-		game = new Life(2,2);
+		game = new LifeState(2,2);
 		boolean[][] world = game.getWorld();
 		assertFalse(world[0][0]);
 		game.setCell(0, 0, true);
@@ -59,7 +59,7 @@ public class testWorld {
 	
 	@Test
 	public void testCountThreeLivingNeighbours() {
-		game = new Life(2, 2);
+		game = new LifeState(2, 2);
 		game.setCell(1, 1, true);
 		game.setCell(0, 0, true);
 		game.setCell(0, 1, true);
@@ -69,7 +69,7 @@ public class testWorld {
 	
 	@Test
 	public void testCountTwoLivingNeighbours() {
-		game = new Life(2, 2);
+		game = new LifeState(2, 2);
 		game.setCell(1, 1, true);
 		game.setCell(0, 0, true);
 		game.setCell(0, 1, true);
@@ -78,7 +78,7 @@ public class testWorld {
 	
 	@Test
 	public void testCountOneLivingNeighbours() {
-		game = new Life(2, 2);
+		game = new LifeState(2, 2);
 		game.setCell(1, 1, true);
 		game.setCell(0, 0, true);
 		assertEquals(game.countLivingNeighbours.apply(new Point(0, 0)), new Integer(1));
@@ -86,11 +86,11 @@ public class testWorld {
 	
 	@Test
 	public void testNextLifeWithOneNeighbour() {
-		game = new Life(10, 10);
+		game = new LifeState(10, 10);
 		game.setCell(1, 1, true);
 		game.setCell(0, 0, true);
 		game.setCell(3, 3, true);
-		Life nextGeneration = game.nextTick();
+		LifeState nextGeneration = game.nextTick();
 		boolean[][] world = nextGeneration.getWorld();
 		for(boolean[] row : world) {
 			for(boolean cell: row) {
@@ -101,11 +101,11 @@ public class testWorld {
 	
 	@Test
 	public void testNextLifeWithTwoNeighbours() {
-		game = new Life(4, 8);
+		game = new LifeState(4, 8);
 		game.setCell(1, 5, true);
 		game.setCell(2, 4, true);
 		game.setCell(2, 5, true);
-		Life nextGeneration = game.nextTick();
+		LifeState nextGeneration = game.nextTick();
 		boolean[][] world = nextGeneration.getWorld();
 		for (int i = 0; i < world.length; i++) {
 			for (int j = 0; j < world[i].length; j++) {
@@ -124,42 +124,42 @@ public class testWorld {
 	
 	@Test
 	public void testCompareToSelf() {
-		game = new Life(3,3);
+		game = new LifeState(3,3);
 		game.setCell(0, 0, true);
 		assertTrue(game.compareTo(game));
 	}
 	
 	@Test
 	public void testCompareToCopy() {
-		game = new Life(3,3);
+		game = new LifeState(3,3);
 		game.setCell(0, 0, true);
-		Life copy = new Life(game.getWorld());
+		LifeState copy = new LifeState(game.getWorld());
 		assertTrue(game.compareTo(copy));
 	}
 	
 	@Test
 	public void testCompareToDifferentDimensions() {
-		game = new Life(3,3);
-		Life game2 = new Life(4,5);
+		game = new LifeState(3,3);
+		LifeState game2 = new LifeState(4,5);
 		assertFalse(game.compareTo(game2));
 	}
 	
 	@Test
 	public void testCompareToDifferentWorldState() {
-		game = new Life(3,3);
-		Life game2 = new Life(3,3);
+		game = new LifeState(3,3);
+		LifeState game2 = new LifeState(3,3);
 		game2.setCell(2, 1, true);
 		assertFalse(game.compareTo(game2));
 	}
 	
 	@Test
 	public void testCrossPattern() {
-		game = new Life(5,5);
+		game = new LifeState(5,5);
 		game.setCell(2,1, true);
 		game.setCell(2,2, true);
 		game.setCell(2,3, true);
-		Life gen1 = game.nextTick();
-		Life gen2 = gen1.nextTick();
+		LifeState gen1 = game.nextTick();
+		LifeState gen2 = gen1.nextTick();
 		assertFalse(game.compareTo(gen1));
 		assertTrue(game.compareTo(gen2));
 	}
